@@ -1,0 +1,1 @@
+# jenkins-mongodb-ansible-shared-lib
