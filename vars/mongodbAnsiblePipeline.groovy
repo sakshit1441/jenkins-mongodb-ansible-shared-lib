@@ -23,6 +23,7 @@ def call() {
                 steps {
                     echo "Cloning MongoDB Ansible repository"
                     git url: config.GIT_REPO
+                        branch: Sakshi_Totawar_Ansible 
                 }
             }
 
