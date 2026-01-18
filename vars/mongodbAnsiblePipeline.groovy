@@ -23,7 +23,7 @@ def call(Map args = [:]) {
         ansible-playbook \
           ${config.CODE_BASE_PATH}/site.yml \
           -i ${config.CODE_BASE_PATH}/inventory.ini \
-          --private-key=var/lib/jenkins/ansible_3.pem
+          --private-key=/var/lib/jenkins/ansible_3.pem
         """
     }
     stage('Slack Notification') {
