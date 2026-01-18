@@ -2,7 +2,7 @@ def call() {
 
     /*
      * Load configuration from resources/mongodb-config.yml
-     * This file contains all inputs (no hardcoding)
+     * Fully config-driven (no hardcoding)
      */
     def config = readYaml text: libraryResource('mongodb-config.yml')
 
@@ -22,14 +22,19 @@ def call() {
             stage('Clone MongoDB Ansible Repo') {
                 steps {
                     echo "Cloning MongoDB Ansible repository"
-                    git url: config.GIT_REPO
-                        branch: Sakshi_Totawar_Ansible 
+                    echo "Repo   : ${config.GIT_REPO}"
+                    echo "Branch : ${config.GIT_BRANCH}"
+
+                    git url: config.GIT_REPO,
+                        branch: config.GIT_BRANCH
+
+                    // Debug: confirm branch
+                    sh 'git rev-parse --abbrev-ref HEAD'
                 }
             }
 
             /* ============================
              * STAGE 2: USER APPROVAL
-             * (Conditional)
              * ============================
              */
             stage('User Approval') {
@@ -42,12 +47,12 @@ def call() {
             }
 
             /* ============================
-             * STAGE 3: PLAYBOOK EXECUTION
+             * STAGE 3: EXECUTE PLAYBOOK
              * ============================
              */
             stage('Execute MongoDB Ansible Playbook') {
                 steps {
-                    echo "Executing MongoDB Ansible Playbook"
+                    echo "Executing MongoDB Ansible Playbook for ${config.ENVIRONMENT}"
 
                     sh """
                         cd ${config.CODE_BASE_PATH}
@@ -59,7 +64,7 @@ def call() {
         }
 
         /* ============================
-         * POST ACTIONS: NOTIFICATION
+         * POST ACTIONS
          * ============================
          */
         post {
@@ -81,8 +86,7 @@ def call() {
 }
 
 /*
- * Notification wrapper function
- * Calls helper class in src/
+ * Notification helper function
  */
 def sendNotification(String channel, String message) {
     notifier.Notification.send(this, channel, message)
