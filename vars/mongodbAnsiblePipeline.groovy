@@ -21,7 +21,6 @@ def call(Map args = [:]) {
         echo "Running Ansible for Mongodb..."
         sh """
         ansible-playbook \
-          -u ec2-user \
           ${config.CODE_BASE_PATH}/site.yml \
           -i ${config.CODE_BASE_PATH}/inventory.ini \
           --private-key=var/lib/jenkins/ansible_3.pem
