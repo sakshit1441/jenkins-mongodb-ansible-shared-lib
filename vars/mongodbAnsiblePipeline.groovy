@@ -23,7 +23,7 @@ def call(Map args = [:]) {
         ansible-playbook \
           -u ec2-user \
           ${config.CODE_BASE_PATH}/site.yml \
-          -i ${config.CODE_BASE_PATH}/aws_ec2.yml \
+          -i ${config.CODE_BASE_PATH}/inventory.ini \
           --private-key=var/lib/jenkins/ansible_3.pem
         """
     }
@@ -32,7 +32,7 @@ def call(Map args = [:]) {
         channel: config.SLACK_CHANNEL_NAME,
         color: currentBuild.currentResult == 'SUCCESS' ? 'good' : 'danger',
         message: """
-Kafka Deployment Completed
+Mongodb Deployment Completed
 Job: ${env.JOB_NAME}
 Build #: ${env.BUILD_NUMBER}
 Environment: ${config.ENVIRONMENT}
