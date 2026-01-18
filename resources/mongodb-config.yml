@@ -1,9 +1,13 @@
-SLACK_CHANNEL_NAME: "#jenkins"
-ENVIRONMENT: "prod"
-CODE_BASE_PATH: "env/prod"
-ACTION_MESSAGE: "MongoDB deployment started"
+GIT_REPO: https://github.com/sakshit1441/mongodb-ansible.git
+GIT_BRANCH: Sakshi_Totawar_Ansible
+
+ENVIRONMENT: dev
+
 KEEP_APPROVAL_STAGE: true
 
-GIT_REPO: "https://github.com/OT-MyGurukulam/Ansible_33.git"
-ANSIBLE_PLAYBOOK: "Assignment_5/site.yml"
-INVENTORY_FILE: "Assignment_5/inventory.ini"
+CODE_BASE_PATH: mongodb-ansible
+ANSIBLE_PLAYBOOK: site.yml
+INVENTORY_FILE: inventory/dev.ini
+
+SLACK_CHANNEL_NAME: "#mongodb-deployments"
+ACTION_MESSAGE: "MongoDB deployment completed"
