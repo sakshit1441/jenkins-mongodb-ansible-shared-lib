@@ -1,89 +1,45 @@
-def call() {
-
-    /*
-     * Load configuration from resources/mongodb-config.yml
-     * This file contains all inputs (no hardcoding)
-     */
-    def config = readYaml text: libraryResource('mongodb-config.yml')
-
-    pipeline {
-        agent any
-
-        options {
-            timestamps()
-        }
-
-        stages {
-
-            /* ============================
-             * STAGE 1: CLONE REPOSITORY
-             * ============================
-             */
-            stage('Clone MongoDB Ansible Repo') {
-                steps {
-                    echo "Cloning MongoDB Ansible repository"
-                    git url: config.GIT_REPO
-                        branch: Sakshi_Totawar_Ansible 
-                }
-            }
-
-            /* ============================
-             * STAGE 2: USER APPROVAL
-             * (Conditional)
-             * ============================
-             */
-            stage('User Approval') {
-                when {
-                    expression { config.KEEP_APPROVAL_STAGE == true }
-                }
-                steps {
-                    input message: "Approve MongoDB deployment to ${config.ENVIRONMENT} environment?"
-                }
-            }
-
-            /* ============================
-             * STAGE 3: PLAYBOOK EXECUTION
-             * ============================
-             */
-            stage('Execute MongoDB Ansible Playbook') {
-                steps {
-                    echo "Executing MongoDB Ansible Playbook"
-
-                    sh """
-                        cd ${config.CODE_BASE_PATH}
-                        ansible-playbook ${config.ANSIBLE_PLAYBOOK} \
-                        -i ${config.INVENTORY_FILE}
-                    """
-                }
-            }
-        }
-
-        /* ============================
-         * POST ACTIONS: NOTIFICATION
-         * ============================
-         */
-        post {
-            success {
-                sendNotification(
-                    config.SLACK_CHANNEL_NAME,
-                    "✅ SUCCESS | ${config.ENVIRONMENT} | ${config.ACTION_MESSAGE}"
-                )
-            }
-
-            failure {
-                sendNotification(
-                    config.SLACK_CHANNEL_NAME,
-                    "❌ FAILED | ${config.ENVIRONMENT} | ${config.ACTION_MESSAGE}"
-                )
-            }
-        }
+def call(Map args = [:]) {
+    def config
+    stage('Load Config') {
+        config = readYaml text: libraryResource(args.configFile)
+        echo "Environment: ${config.ENVIRONMENT}"
+    }
+    stage('Clone Repo') {
+    echo "Cloning Mongodb code..."
+    dir('ansible-src') {
+        git branch: 'Sakshi_Totawar_Ansible',
+            url: 'https://github.com/OT-MyGurukulam/Ansible_33.git',
+            credentialsId: 'github-creds'
     }
 }
-
-/*
- * Notification wrapper function
- * Calls helper class in src/
- */
-def sendNotification(String channel, String message) {
-    notifier.Notification.send(this, channel, message)
+    if (config.KEEP_APPROVAL_STAGE == true) {
+        stage('User Approval') {
+            input message: "Approve Mongodb deployment for ${config.ENVIRONMENT}?"
+        }
+    }
+    stage('Ansible Playbook Execution') {
+        echo "Running Ansible for Mongodb..."
+        sh """
+        ansible-playbook \
+          -u ec2-user \
+          ${config.CODE_BASE_PATH}/site.yml \
+          -i ${config.CODE_BASE_PATH}/aws_ec2.yml \
+          --private-key=var/lib/jenkins/ansible_3.pem
+        """
+    }
+    stage('Slack Notification') {
+        slackSend(
+        channel: config.SLACK_CHANNEL_NAME,
+        color: currentBuild.currentResult == 'SUCCESS' ? 'good' : 'danger',
+        message: """
+Kafka Deployment Completed
+Job: ${env.JOB_NAME}
+Build #: ${env.BUILD_NUMBER}
+Environment: ${config.ENVIRONMENT}
+Result: ${currentBuild.currentResult}
+Build URL:
+${env.BUILD_URL}
+"""
+    )
+    }
 }
